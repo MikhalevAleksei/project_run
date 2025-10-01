@@ -24,10 +24,10 @@ from app_run import views
 
 
 router = DefaultRouter()
-router.register(r'runs', views.RunViewSet)
+router.register(r'api/runs', views.RunViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/company_details/', views.preview_view),
-    path('api/', include(router.urls)),
+    path('', include(router.urls)),
 ]
