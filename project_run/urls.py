@@ -20,14 +20,14 @@ from django.conf.urls.static import static
 from django.conf import settings
 from rest_framework.routers import DefaultRouter
 
-from app_run import views
-
+from app_run.views import UserViewSet, RunViewSet, preview_view
 
 router = DefaultRouter()
-router.register(r'api/runs', views.RunViewSet)
+router.register(r'users', UserViewSet, basename='user')
+router.register(r'runs', RunViewSet, basename='run')
 
 urlpatterns = [
+    path('api/', include(router.urls)),
     path('admin/', admin.site.urls),
-    path('api/company_details/', views.preview_view),
-    path('', include(router.urls)),
+    path('api/company_details/', preview_view),
 ]
