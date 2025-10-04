@@ -9,7 +9,7 @@ from .serializers import RunSerializer, UserSerializer
 
 
 class RunViewSet(viewsets.ModelViewSet):
-    queryset = Run.objects.all()
+    queryset = Run.objects.select_related('user').all()
     serializer_class = RunSerializer
 
 
