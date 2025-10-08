@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
+    'django_filters',
 
     'app_run',
 
@@ -118,4 +119,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 COMPANY_NAME = 'Рывок'
 SLOGAN = 'Через терни к звездам'
-CONTACTS = 'Москва, до востребования'
+CONTACTS = 'Москва, до востребования '

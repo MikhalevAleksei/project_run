@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 from rest_framework.filters import SearchFilter
@@ -14,6 +15,8 @@ from .serializers import RunSerializer, UserSerializer
 class RunViewSet(viewsets.ModelViewSet):
     queryset = Run.objects.select_related('athlete').all()
     serializer_class = RunSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['status', 'athlete']
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
@@ -46,6 +49,13 @@ def preview_view(request):
 
 
 class StartStatusAPIView(APIView):
+    def get(self, request, run_id, *args, **kwargs):
+        run = get_object_or_404(Run, id=run_id)
+        return Response(
+            {"status": run.status},
+            status=status.HTTP_200_OK,
+        )
+
     def post(self, request, run_id, *args, **kwargs):
         run = get_object_or_404(Run, id=run_id)
 
@@ -64,6 +74,13 @@ class StartStatusAPIView(APIView):
 
 
 class StopStatusAPIView(APIView):
+    def get(self, request, run_id, *args, **kwargs):
+        run = get_object_or_404(Run, id=run_id)
+        return Response(
+            {"status": run.status},
+            status=status.HTTP_200_OK,
+        )
+
     def post(self, request, run_id, *args, **kwargs):
         run = get_object_or_404(Run, id=run_id)
 
