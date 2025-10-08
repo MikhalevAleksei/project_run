@@ -14,7 +14,7 @@ from .models import Run
 from .serializers import RunSerializer, UserSerializer
 
 
-class RunPagination(PageNumberPagination):
+class StandartPagination(PageNumberPagination):
     # page_size = 10  # Количество объектов на странице по умолчанию (не обязательный параметр)
     page_size_query_param = 'size'
     # max_page_size = 100  # Ограничиваем максимальное количество объектов на странице
@@ -27,14 +27,17 @@ class RunViewSet(viewsets.ModelViewSet):
     filterset_fields = ['status', 'athlete']
     ordering_fields = ['created_at']
     ordering = ['id']
-    pagination_class = RunPagination
+    pagination_class = StandartPagination
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserSerializer
     queryset = User.objects.all()
-    filter_backends = [SearchFilter]  # Подключаем SearchFilter здесь
+    filter_backends = [SearchFilter, OrderingFilter]  # Подключаем SearchFilter здесь
     search_fields = ['first_name', 'last_name']  # Указываем поля по которым будет вестись поиск
+    ordering_fields = ['date_joined']
+    ordering = ['id']
+    pagination_class = StandartPagination
 
     def get_queryset(self):
         qs = self.queryset.exclude(is_superuser=True)  # исключаем админов
