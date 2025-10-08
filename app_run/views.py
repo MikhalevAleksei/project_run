@@ -1,5 +1,7 @@
 from django.contrib.auth.models import User
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import OrderingFilter
+from rest_framework.pagination import PageNumberPagination
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 from rest_framework.filters import SearchFilter
@@ -12,11 +14,20 @@ from .models import Run
 from .serializers import RunSerializer, UserSerializer
 
 
+class RunPagination(PageNumberPagination):
+    # page_size = 10  # Количество объектов на странице по умолчанию (не обязательный параметр)
+    page_size_query_param = 'size'
+    # max_page_size = 100  # Ограничиваем максимальное количество объектов на странице
+
+
 class RunViewSet(viewsets.ModelViewSet):
     queryset = Run.objects.select_related('athlete').all()
     serializer_class = RunSerializer
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ['status', 'athlete']
+    ordering_fields = ['created_at']
+    ordering = ['id']
+    pagination_class = RunPagination
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
