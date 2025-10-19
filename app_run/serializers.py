@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from app_run.models import Run, AthleteInfo
+from app_run.models import Run, AthleteInfo, Challenges
 
 
 class UserShortSerializer(serializers.ModelSerializer):
@@ -42,3 +42,11 @@ class AthleteInfoSerializer(serializers.ModelSerializer):
         model = AthleteInfo
         fields = ['user_id', 'goals', 'weight']
 
+
+class ChallengesSerializer(serializers.ModelSerializer):
+    athlete_id = serializers.IntegerField(source='athlete.id', read_only=True)
+    athlete_username = serializers.CharField(source='athlete.username', read_only=True)
+
+    class Meta:
+        model = Challenges
+        fields = ['id', 'full_name', 'athlete_id', 'athlete_username', 'created_at']

@@ -10,8 +10,8 @@ from django.conf import settings
 from rest_framework import viewsets, status
 from rest_framework.views import APIView
 
-from .models import Run, AthleteInfo
-from .serializers import RunSerializer, UserSerializer, AthleteInfoSerializer
+from .models import Run, AthleteInfo, Challenges
+from .serializers import RunSerializer, UserSerializer, AthleteInfoSerializer, ChallengesSerializer
 
 
 class StandartPagination(PageNumberPagination):
@@ -107,11 +107,13 @@ class StopStatusAPIView(APIView):
 
         run.status = 'finished'
         run.save()
+        challenge_count = Run.objects.filter(athlete=run.athlete, status="finished").count()
+        if challenge_count == 10:
+            Challenges.objects.create(athlete=run.athlete)
         return Response(
             {"message": "Забег завершён", "status": run.status},
             status=status.HTTP_200_OK,
         )
-
 
 
 class AthleteInfoAPIView(APIView):
@@ -164,3 +166,35 @@ class AthleteInfoAPIView(APIView):
 
         serializer = AthleteInfoSerializer(athlete_info)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+# class ChallengesAPIView(APIView):
+#     """
+#     GET /api/challenges/
+#     GET /api/challenges/?athlete=<id>
+#     """
+#     def get(self, request):
+#         athlete_id = request.query_params.get("athlete")
+#         queryset = Challenges.objects.all()
+#
+#         if athlete_id:
+#             queryset = queryset.filter(athlete_id=athlete_id)
+#
+#         serializer = ChallengesSerializer(queryset, many=True)
+#         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class ChallengesViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    /api/challenges/ - список всех челленджей
+    /api/challenges/?athlete=<id> - фильтр по пользователю
+    /api/challenges/?ordering=-created_at - сортировка по дате
+    /api/challenges/?page=2&size=5 - пагинация
+    """
+    queryset = Challenges.objects.all()
+    serializer_class = ChallengesSerializer
+    pagination_class = StandartPagination
+
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_fields = ['athlete']
+    ordering_fields = ['created_at', 'full_name']
+    ordering = ['-created_at']  # сортировка по умолчанию (новые сверху)

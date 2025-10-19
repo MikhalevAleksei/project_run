@@ -29,3 +29,14 @@ class AthleteInfo(models.Model):
     def __str__(self):
         return f"Id {self.id} - Name {self.user} - Goals {self.goals} - Weight {self.weight}"
 
+
+class Challenges(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    full_name = models.CharField(default="Сделай 10 Забегов!", max_length=255)
+    athlete = models.ForeignKey(User, on_delete=models.CASCADE, related_name='challenges')
+
+    def __str__(self):
+        return f"Id {self.id} - Name {self.full_name} - Athlete {self.athlete}"
+
+
