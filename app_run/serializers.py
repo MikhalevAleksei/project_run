@@ -49,4 +49,4 @@ class ChallengesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Challenges
-        fields = ['id', 'full_name', 'athlete_id', 'athlete_username', 'created_at']
+        fields = ['id', 'full_name', 'athlete', 'athlete_username', 'created_at']
