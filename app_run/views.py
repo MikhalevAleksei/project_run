@@ -10,8 +10,8 @@ from django.conf import settings
 from rest_framework import viewsets, status
 from rest_framework.views import APIView
 
-from .models import Run
-from .serializers import RunSerializer, UserSerializer
+from .models import Run, AthleteInfo
+from .serializers import RunSerializer, UserSerializer, AthleteInfoSerializer
 
 
 class StandartPagination(PageNumberPagination):
@@ -111,3 +111,56 @@ class StopStatusAPIView(APIView):
             {"message": "Забег завершён", "status": run.status},
             status=status.HTTP_200_OK,
         )
+
+
+
+class AthleteInfoAPIView(APIView):
+    """
+    GET /api/athlete_info/<user_id>/
+    PUT /api/athlete_info/<user_id>/
+    """
+
+    def get(self, request, user_id):
+        # Проверяем, существует ли User
+        user = get_object_or_404(User, id=user_id)
+
+        # Получаем или создаём AthleteInfo
+        athlete_info, created = AthleteInfo.objects.get_or_create(user=user)
+
+        serializer = AthleteInfoSerializer(athlete_info)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, user_id):
+        # Проверяем, существует ли User
+        user = get_object_or_404(User, id=user_id)
+
+        # Получаем данные
+        goals = request.data.get('goals')
+        weight = request.data.get('weight')
+
+        # Проверяем корректность веса
+        if weight is not None:
+            try:
+                weight = int(weight)
+            except ValueError:
+                return Response(
+                    {"error": "weight должен быть числом"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if weight <= 0 or weight >= 900:
+                return Response(
+                    {"error": "weight должен быть больше 0 и меньше 900"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        # Создаём или обновляем запись
+        athlete_info, created = AthleteInfo.objects.update_or_create(
+            user=user,
+            defaults={
+                "goals": goals,
+                "weight": weight,
+            },
+        )
+
+        serializer = AthleteInfoSerializer(athlete_info)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
