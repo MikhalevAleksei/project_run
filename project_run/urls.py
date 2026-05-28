@@ -23,14 +23,16 @@ from rest_framework.routers import DefaultRouter
 from app_run import views
 
 router = DefaultRouter()
-router.register(r'users', views.UserViewSet, basename='user')
-router.register(r'runs', views.RunViewSet, basename='run')
-router.register(r'challenges', views.ChallengesViewSet, basename='challenges')
+router.register('users', views.UserViewSet, basename='user')
+router.register('runs', views.RunViewSet, basename='run')
+router.register('challenges', views.ChallengeViewSet, basename='challenges')
+router.register('positions', views.PositionViewSet, basename='positions')
 
 urlpatterns = [
-    path('api/', include(router.urls)),
     path('admin/', admin.site.urls),
-    path('api/company_details/', views.preview_view),
+
+    path('api/', include(router.urls)),
+    path('api/company_details/', views.company_details),
     path('api/runs/<int:run_id>/start/', views.StartStatusAPIView.as_view()),
     path('api/runs/<int:run_id>/stop/', views.StopStatusAPIView.as_view()),
     path('api/athlete_info/<int:user_id>/', views.AthleteInfoAPIView.as_view(), name='athlete-info'),

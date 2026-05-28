@@ -10,11 +10,11 @@ from django.conf import settings
 from rest_framework import viewsets, status
 from rest_framework.views import APIView
 
-from .models import Run, AthleteInfo, Challenges
-from .serializers import RunSerializer, UserSerializer, AthleteInfoSerializer, ChallengesSerializer
+from .models import Run, AthleteInfo, Challenge, Position
+from .serializers import RunSerializer, UserSerializer, AthleteInfoSerializer, ChallengeSerializer, PositionSerializer
 
 
-class StandartPagination(PageNumberPagination):
+class StandardPagination(PageNumberPagination):
     # page_size = 10  # Количество объектов на странице по умолчанию (не обязательный параметр)
     page_size_query_param = 'size'
     # max_page_size = 100  # Ограничиваем максимальное количество объектов на странице
@@ -28,7 +28,7 @@ class RunViewSet(viewsets.ModelViewSet):
     filterset_fields = ['status', 'athlete']
     ordering_fields = ['created_at']
     ordering = ['id']
-    pagination_class = StandartPagination
+    pagination_class = StandardPagination
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
@@ -38,7 +38,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     search_fields = ['first_name', 'last_name']  # Указываем поля по которым будет вестись поиск
     ordering_fields = ['date_joined']
     ordering = ['id']
-    pagination_class = StandartPagination
+    pagination_class = StandardPagination
 
     def get_queryset(self):
         qs = self.queryset.exclude(is_superuser=True)  # исключаем админов
@@ -53,14 +53,11 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 @api_view(['GET'])
-def preview_view(request):
-    company_name = settings.COMPANY_NAME
-    slogan = settings.SLOGAN
-    contacts = settings.CONTACTS
-    return Response({'company_name': company_name,
-                     'slogan': slogan,
-                     'contacts': contacts,
-                     })
+def company_details(request):
+    details = {'company_name': settings.COMPANY_NAME,
+               'slogan': settings.SLOGAN,
+               'contacts': settings.CONTACTS}
+    return Response(details)
 
 
 class StartStatusAPIView(APIView):
@@ -109,7 +106,7 @@ class StopStatusAPIView(APIView):
         run.save()
         challenge_count = Run.objects.filter(athlete=run.athlete, status="finished").count()
         if challenge_count == 10:
-            Challenges.objects.create(athlete=run.athlete)
+            Challenge.objects.create(athlete=run.athlete)
         return Response(
             {"message": "Забег завершён", "status": run.status},
             status=status.HTTP_200_OK,
@@ -183,18 +180,28 @@ class AthleteInfoAPIView(APIView):
 #         serializer = ChallengesSerializer(queryset, many=True)
 #         return Response(serializer.data, status=status.HTTP_200_OK)
 
-class ChallengesViewSet(viewsets.ReadOnlyModelViewSet):
+class ChallengeViewSet(viewsets.ReadOnlyModelViewSet):
     """
     /api/challenges/ - список всех челленджей
     /api/challenges/?athlete=<id> - фильтр по пользователю
     /api/challenges/?ordering=-created_at - сортировка по дате
     /api/challenges/?page=2&size=5 - пагинация
     """
-    queryset = Challenges.objects.all()
-    serializer_class = ChallengesSerializer
-    pagination_class = StandartPagination
+    queryset = Challenge.objects.all()
+    serializer_class = ChallengeSerializer
+    pagination_class = StandardPagination
 
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ['athlete']
     ordering_fields = ['created_at', 'full_name']
     ordering = ['-created_at']  # сортировка по умолчанию (новые сверху)
+
+
+class PositionViewSet(viewsets.ModelViewSet):
+    queryset = Position.objects.all()
+    serializer_class = PositionSerializer
+
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['run']
+
+    http_method_names = ['get', 'post', 'delete', 'head', 'options']
