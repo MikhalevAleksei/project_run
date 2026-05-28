@@ -26,6 +26,8 @@ class Run(models.Model):
         default=STATUS_INIT,
     )
 
+    distance = models.FloatField(default=0)
+
     def __str__(self):
         return f"Run #{self.id} | Athlete: {self.athlete.username} | Status: {self.status}"
 

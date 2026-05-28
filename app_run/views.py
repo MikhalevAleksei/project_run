@@ -1,3 +1,5 @@
+from geopy.distance import geodesic
+
 from django.contrib.auth.models import User
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
@@ -11,7 +13,14 @@ from rest_framework import viewsets, status
 from rest_framework.views import APIView
 
 from .models import Run, AthleteInfo, Challenge, Position
-from .serializers import RunSerializer, UserSerializer, AthleteInfoSerializer, ChallengeSerializer, PositionSerializer
+from .serializers import (
+    RunSerializer,
+    UserSerializer,
+    AthleteInfoSerializer,
+    ChallengeSerializer,
+    PositionSerializer,
+)
+from .helpers import calculate_run_distance
 
 
 class StandardPagination(PageNumberPagination):
@@ -96,19 +105,30 @@ class StopStatusAPIView(APIView):
     def post(self, request, run_id, *args, **kwargs):
         run = get_object_or_404(Run, id=run_id)
 
-        if run.status != 'in_progress':
+        if run.status != Run.STATUS_IN_PROGRESS:
             return Response(
                 {"error": "Нельзя завершить забег, который не запущен или уже завершён."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        run.status = 'finished'
+        run.distance = calculate_run_distance(run)
+        run.status = Run.STATUS_FINISHED
         run.save()
-        challenge_count = Run.objects.filter(athlete=run.athlete, status="finished").count()
+
+        challenge_count = Run.objects.filter(
+            athlete=run.athlete,
+            status=Run.STATUS_FINISHED,
+        ).count()
+
         if challenge_count == 10:
             Challenge.objects.create(athlete=run.athlete)
+
         return Response(
-            {"message": "Забег завершён", "status": run.status},
+            {
+                "message": "Забег завершён",
+                "status": run.status,
+                "distance": run.distance,
+            },
             status=status.HTTP_200_OK,
         )
 

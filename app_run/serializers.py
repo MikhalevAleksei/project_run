@@ -24,6 +24,7 @@ class RunSerializer(serializers.ModelSerializer):
             'athlete',
             'athlete_data',
             'status',
+            'distance',
         ]
 
 
