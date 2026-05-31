@@ -1,3 +1,4 @@
+from django.db.models import Sum
 from geopy.distance import geodesic
 
 from django.contrib.auth.models import User
@@ -123,6 +124,21 @@ class StopStatusAPIView(APIView):
         if challenge_count == 10:
             Challenge.objects.create(athlete=run.athlete)
 
+        total_distance = Run.objects.filter(
+            athlete=run.athlete,
+            status=Run.STATUS_FINISHED,
+        ).aggregate(
+            total_distance=Sum('distance')
+        )
+
+        athlete_total_distance = total_distance.get('total_distance') or 0
+
+        if athlete_total_distance >= 50:
+            Challenge.objects.get_or_create(
+                athlete=run.athlete,
+                title="Пробеги 50 километров!",
+            )
+
         return Response(
             {
                 "message": "Забег завершён",
@@ -213,7 +229,7 @@ class ChallengeViewSet(viewsets.ReadOnlyModelViewSet):
 
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ['athlete']
-    ordering_fields = ['created_at', 'full_name']
+    ordering_fields = ['created_at',]
     ordering = ['-created_at']  # сортировка по умолчанию (новые сверху)
 
 

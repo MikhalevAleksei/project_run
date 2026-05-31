@@ -80,7 +80,7 @@ class ChallengeSerializer(serializers.ModelSerializer):
         model = Challenge
         fields = [
             'id',
-            'full_name',
+            'title',
             'athlete_id',
             'athlete_username',
             'created_at',
