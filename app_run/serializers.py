@@ -73,16 +73,15 @@ class AthleteInfoSerializer(serializers.ModelSerializer):
 
 
 class ChallengeSerializer(serializers.ModelSerializer):
-    athlete_id = serializers.IntegerField(source='athlete.id', read_only=True)
-    athlete_username = serializers.CharField(source='athlete.username', read_only=True)
+    # athlete_id = serializers.IntegerField(source='athlete.id', read_only=True)
+    # athlete_username = serializers.CharField(source='athlete.username', read_only=True)
     full_name = serializers.CharField(source='title', read_only=True)
     class Meta:
         model = Challenge
         fields = [
             'id',
             'full_name',
-            'athlete_id',
-            'athlete_username',
+            'athlete',
             'created_at',
         ]
 
