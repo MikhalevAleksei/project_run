@@ -3,6 +3,7 @@ from geopy.distance import geodesic
 
 from django.contrib.auth.models import User
 from django_filters.rest_framework import DjangoFilterBackend
+from openpyxl import load_workbook
 from rest_framework.filters import OrderingFilter
 from rest_framework.pagination import PageNumberPagination
 from django.shortcuts import get_object_or_404
@@ -10,16 +11,16 @@ from rest_framework.decorators import api_view
 from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 from django.conf import settings
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, generics
 from rest_framework.views import APIView
 
-from .models import Run, AthleteInfo, Challenge, Position
+from .models import Run, AthleteInfo, Challenge, Position, CollectibleItem
 from .serializers import (
     RunSerializer,
     UserSerializer,
     AthleteInfoSerializer,
     ChallengeSerializer,
-    PositionSerializer,
+    PositionSerializer, CollectibleItemSerializer,
 )
 from .helpers import calculate_run_distance
 
@@ -229,7 +230,7 @@ class ChallengeViewSet(viewsets.ReadOnlyModelViewSet):
 
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ['athlete']
-    ordering_fields = ['created_at',]
+    ordering_fields = ['created_at', ]
     ordering = ['-created_at']  # сортировка по умолчанию (новые сверху)
 
 
@@ -241,3 +242,48 @@ class PositionViewSet(viewsets.ModelViewSet):
     filterset_fields = ['run']
 
     http_method_names = ['get', 'post', 'delete', 'head', 'options']
+
+
+class CollectibleItemListView(generics.ListAPIView):
+    queryset = CollectibleItem.objects.all()
+    serializer_class = CollectibleItemSerializer
+
+
+class UploadFileView(APIView):
+
+    def post(self, request):
+        uploaded_file = request.FILES.get("file")
+
+        if not uploaded_file:
+            return Response(
+                {"error": "File is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        workbook = load_workbook(uploaded_file)
+        sheet = workbook.active
+
+        invalid_rows = []
+
+        for row in sheet.iter_rows(min_row=2, values_only=True):
+            data = {
+                "name": row[0],
+                "uid": row[1],
+                "value": row[2],
+                "latitude": row[3],
+                "longitude": row[4],
+                "picture": row[5],
+            }
+
+            serializer = CollectibleItemSerializer(data=data)
+
+            if serializer.is_valid():
+                serializer.save()
+            else:
+                invalid_rows.append(list(row))
+
+        return Response(
+            invalid_rows,
+            status=status.HTTP_200_OK,
+        )
+

@@ -3,7 +3,7 @@ from decimal import Decimal, InvalidOperation
 from django.contrib.auth.models import User
 from rest_framework import serializers, status
 
-from app_run.models import Run, AthleteInfo, Challenge, Position
+from app_run.models import Run, AthleteInfo, Challenge, Position, CollectibleItem
 
 
 class UserShortSerializer(serializers.ModelSerializer):
@@ -76,6 +76,7 @@ class ChallengeSerializer(serializers.ModelSerializer):
     # athlete_id = serializers.IntegerField(source='athlete.id', read_only=True)
     # athlete_username = serializers.CharField(source='athlete.username', read_only=True)
     full_name = serializers.CharField(source='title', read_only=True)
+
     class Meta:
         model = Challenge
         fields = [
@@ -84,6 +85,7 @@ class ChallengeSerializer(serializers.ModelSerializer):
             'athlete',
             'created_at',
         ]
+
 
 class PositionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -136,3 +138,18 @@ class PositionSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 f"{field_name} может иметь не больше 4 знаков после запятой."
             )
+
+
+class CollectibleItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CollectibleItem
+        fields = (
+            "id",
+            "name",
+            "uid",
+            "latitude",
+            "longitude",
+            "picture",
+            "value",
+        )
+

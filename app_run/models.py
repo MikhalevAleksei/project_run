@@ -78,3 +78,14 @@ class Position(models.Model):
     def __str__(self):
         return f"Position {self.id} | Run {self.run_id}"
 
+
+class CollectibleItem(models.Model):
+    name = models.CharField(max_length=255)
+    uid = models.CharField(max_length=255, unique=True)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+    picture = models.URLField()
+    value = models.IntegerField()
+
+    def __str__(self):
+        return self.name
